@@ -198,7 +198,7 @@ if "step" not in st.session_state:
     st.session_state.step = 1
 
 st.title("Interview Helper App")
-st.markdown("<h3>Job Search never been easier</h3>", unsafe_allow_html=True)
+st.markdown("<h3>Job Search has never been easier with AI</h3>", unsafe_allow_html=True)
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # -------------------------------
@@ -209,7 +209,7 @@ if st.session_state.step == 1:
         """
         <div class='card'>
           <h2 class='step-title'>Step 1: Upload Your CV</h2>
-          <p>Please upload your CV (PDF format). We will analyze it and provide a concise summary (max 150 tokens, no more than 2 paragraphs) of your strengths and weaknesses.</p>
+          <p>Please upload your CV (PDF format). We will analyze it and provide a concise summary of your strengths and weaknesses.</p>
         </div>
         """, unsafe_allow_html=True
     )
