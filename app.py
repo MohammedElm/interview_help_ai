@@ -261,6 +261,9 @@ elif st.session_state.step == 2:
         """, unsafe_allow_html=True
     )
     job_input_method = st.radio("Choose how to provide the job description:", ("Job URL", "Manual Input"), key="job_method")
+    # Clear any previous job_summary if switching methods
+    if "job_summary" in st.session_state:
+        del st.session_state.job_summary
     job_description = ""
     if job_input_method == "Job URL":
         job_url = st.text_input("Enter the job URL")
@@ -302,7 +305,6 @@ elif st.session_state.step == 2:
     else:
         job_description = st.text_area("Enter the job description manually", height=300)
         if job_description:
-            # Always generate a new summary in manual mode.
             with st.spinner("Generating concise job summary..."):
                 prompt = (
                     "Based on the following job description, provide a concise summary (max 150 tokens, no more than 2 paragraphs) "
@@ -420,36 +422,41 @@ elif st.session_state.step == 3:
             # Create PDF document using fpdf with colors.
             pdf = FPDF()
             pdf.add_page()
+            pdf.compress = False  # Disable compression to avoid encoding issues.
+            
             # Title with dark blue color.
             pdf.set_text_color(44, 62, 80)
             pdf.set_font("Arial", "B", 16)
             pdf.cell(0, 10, "Interview Preparation Document", ln=1, align="C")
             pdf.ln(5)
             
-            # Job Summary section in blue.
+            # Clean and output job summary in blue.
+            job_summary_clean = clean_text(st.session_state.job_summary)
             pdf.set_text_color(41, 128, 185)
             pdf.set_font("Arial", "B", 12)
             pdf.cell(0, 10, "Job Needs (Refined Job Summary):", ln=1)
             pdf.set_font("Arial", "", 11)
-            for line in st.session_state.job_summary.split("\n"):
+            for line in job_summary_clean.split("\n"):
                 pdf.multi_cell(0, 8, line)
             pdf.ln(5)
             
-            # Candidate Fit Score section in green.
+            # Clean and output candidate fit score in green.
+            fit_score_clean = clean_text(st.session_state.fit_score)
             pdf.set_text_color(39, 174, 96)
             pdf.set_font("Arial", "B", 12)
             pdf.cell(0, 10, "Candidate Fit Score:", ln=1)
             pdf.set_font("Arial", "", 11)
-            for line in st.session_state.fit_score.split("\n"):
+            for line in fit_score_clean.split("\n"):
                 pdf.multi_cell(0, 8, line)
             pdf.ln(5)
             
-            # Interview Questions & Guidance in purple.
+            # Clean and output interview questions & guidance in purple.
+            interview_output_clean = clean_text(st.session_state.interview_output)
             pdf.set_text_color(142, 68, 173)
             pdf.set_font("Arial", "B", 12)
             pdf.cell(0, 10, "Interview Questions & Guidance:", ln=1)
             pdf.set_font("Arial", "", 11)
-            for line in st.session_state.interview_output.split("\n"):
+            for line in interview_output_clean.split("\n"):
                 pdf.multi_cell(0, 8, line)
             
             # Generate PDF output as a string, clean it and then encode with error replacement.
