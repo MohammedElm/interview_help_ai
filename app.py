@@ -222,7 +222,7 @@ if st.session_state.step == 1:
             if "cv_summary" not in st.session_state:
                 with st.spinner("Generating concise CV summary..."):
                     prompt = (
-                        "Based on the following candidate CV, provide a concise summary (max 150 tokens, no more than 2 paragraphs) "
+                        "Based on the following candidate CV, provide a concise summary"
                         "highlighting the candidate's top strengths and weaknesses. List them as bullet points.\n\nCandidate CV:\n"
                         + cv_text
                     )
