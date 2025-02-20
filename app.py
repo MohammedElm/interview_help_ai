@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import json
 import requests
 from bs4 import BeautifulSoup
 import PyPDF2
@@ -13,29 +14,39 @@ import markdown  # to convert markdown to HTML
 # -------------------------------
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
-app_password = os.getenv("APP_PASSWORD")  # Password to control access
+app_users_json = os.getenv("APP_USERS")
 
 if not openai_api_key:
-    st.error("OpenAI API key not found in .env file. Please create a .env file with OPENAI_API_KEY.")
+    st.error("OPENAI_API_KEY not found in secrets.")
+    st.stop()
+
+if not app_users_json:
+    st.error("APP_USERS not defined in secrets.")
+    st.stop()
+
+try:
+    app_users = json.loads(app_users_json)
+except Exception as e:
+    st.error("APP_USERS secret is not valid JSON.")
     st.stop()
 
 # -------------------------------
-# Simple login mechanism.
+# Simple login mechanism with multiple users.
 # -------------------------------
-if app_password:  # Only require login if APP_PASSWORD is set.
-    if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-    if not st.session_state.logged_in:
-        st.title("Login")
-        st.markdown("<h3>Enter the password to access the Interview Helper App</h3>", unsafe_allow_html=True)
-        password_input = st.text_input("Password", type="password")
-        if st.button("Login"):
-            if password_input == app_password:
-                st.session_state.logged_in = True
-            else:
-                st.error("Invalid password")
-        st.stop()
+if not st.session_state.logged_in:
+    st.title("Login")
+    st.markdown("<h3>Enter your username and password to access the Interview Helper App</h3>", unsafe_allow_html=True)
+    username_input = st.text_input("Username")
+    password_input = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if username_input in app_users and password_input == app_users[username_input]:
+            st.session_state.logged_in = True
+        else:
+            st.error("Invalid username or password.")
+    st.stop()
 
 # -------------------------------
 # Custom CSS for a clean white background and professional styling.
@@ -261,7 +272,7 @@ elif st.session_state.step == 2:
         """, unsafe_allow_html=True
     )
     job_input_method = st.radio("Choose how to provide the job description:", ("Job URL", "Manual Input"), key="job_method")
-    # Clear any previous job_summary if switching methods
+    # Clear any previous job_summary when switching methods.
     if "job_summary" in st.session_state:
         del st.session_state.job_summary
     job_description = ""
@@ -430,7 +441,7 @@ elif st.session_state.step == 3:
             pdf.cell(0, 10, "Interview Preparation Document", ln=1, align="C")
             pdf.ln(5)
             
-            # Clean and output job summary in blue.
+            # Job Summary section in blue.
             job_summary_clean = clean_text(st.session_state.job_summary)
             pdf.set_text_color(41, 128, 185)
             pdf.set_font("Arial", "B", 12)
@@ -440,7 +451,7 @@ elif st.session_state.step == 3:
                 pdf.multi_cell(0, 8, line)
             pdf.ln(5)
             
-            # Clean and output candidate fit score in green.
+            # Candidate Fit Score section in green.
             fit_score_clean = clean_text(st.session_state.fit_score)
             pdf.set_text_color(39, 174, 96)
             pdf.set_font("Arial", "B", 12)
@@ -450,7 +461,7 @@ elif st.session_state.step == 3:
                 pdf.multi_cell(0, 8, line)
             pdf.ln(5)
             
-            # Clean and output interview questions & guidance in purple.
+            # Interview Questions & Guidance in purple.
             interview_output_clean = clean_text(st.session_state.interview_output)
             pdf.set_text_color(142, 68, 173)
             pdf.set_font("Arial", "B", 12)
